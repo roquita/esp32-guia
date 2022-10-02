@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "stdio.h": "c",
+        "esp_log.h": "c",
+        "gpio.h": "c",
+        "sdkconfig.h": "c",
+        "led_strip.h": "c",
+        "stdint.h": "c"
+    }
+}
