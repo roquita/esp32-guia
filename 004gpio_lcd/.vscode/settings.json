@@ -5,6 +5,7 @@
         "gpio.h": "c",
         "sdkconfig.h": "c",
         "led_strip.h": "c",
-        "stdint.h": "c"
+        "stdint.h": "c",
+        "ets_sys.h": "c"
     }
 }

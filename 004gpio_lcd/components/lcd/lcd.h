@@ -1,4 +1,5 @@
-#pragma once
+#ifndef DISPLAY_LCD16X2_H_
+#define DISPLAY_LCD16X2_H_
 
 #include "stdbool.h"
 #include "stdint.h"
@@ -52,4 +53,6 @@ void lcd16x2_read_data(lcd16x2_t* lcd);
 
 // custom functions
 void lcd16x2_print_string(lcd16x2_t* lcd, char* str);
+void lcd16x2_setxy(int x, int y);
 
+#endif /* DISPLAY_LCD16X2_H_ */
