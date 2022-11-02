@@ -14,11 +14,15 @@
 #include "esp_adc/adc_continuous.h"
 static const char *TAG = "EXAMPLE";
 bool adc_conv_done_flag = false;
+
+
 static bool IRAM_ATTR s_conv_done_cb(adc_continuous_handle_t handle, const adc_continuous_evt_data_t *edata, void *user_data)
 {
     adc_conv_done_flag = true;
+    
     return true;
 }
+
 
 void app_main(void)
 {
@@ -32,10 +36,11 @@ void app_main(void)
 
     adc_continuous_config_t dig_cfg = {
         .pattern_num = 2,            // 2 channels to scan
-        .sample_freq_hz = 20 * 1000, // 20khz
+        .sample_freq_hz = 20 * 1000, // 20khz,  <20khz-2Mhz>
         .conv_mode = ADC_CONV_SINGLE_UNIT_1,
         .format = ADC_DIGI_OUTPUT_FORMAT_TYPE1,
     };
+    
 
     adc_digi_pattern_config_t adc_pattern[2] = {0};
 
@@ -60,6 +65,8 @@ void app_main(void)
     };
 
     adc_continuous_register_event_callbacks(handle, &cbs, NULL);
+
+
     adc_continuous_start(handle);
 
     while (1)
@@ -85,6 +92,8 @@ void app_main(void)
                          p0->type1.channel, p0->type1.data,
                          p1->type1.channel, p1->type1.data);
             }
+
+            //adc_continuous_stop(handle);
         }
         vTaskDelay(10);
     }
