@@ -4,20 +4,15 @@
 #include "freertos/task.h"
 #include "lcd.h"
 #include "mylcd_impl.h"
+#include "driver/i2c.h"
+#include "i2c_adapter.h"
 
 lcd16x2_t mylcd;
 
 void mylcd_init()
-{ 
+{
     // LCD
-    gpio_config_t config_lcd_pines = {
-        .pin_bit_mask = (1 << 4) | (1 << 14) | (1 << 18) | (1 << 19) | (1 << 21) | (1 << 22) | (1 << 23),
-        .mode = GPIO_MODE_OUTPUT,
-        .pull_up_en = GPIO_PULLUP_DISABLE,
-        .pull_down_en = GPIO_PULLDOWN_DISABLE,
-        .intr_type = GPIO_INTR_DISABLE,
-    };
-    gpio_config(&config_lcd_pines);
+    i2c_adapter_init();
 
     mylcd.delay_ms = lcd_delay_ms_fn;
     mylcd.delay_us = lcd_delay_us_fn;
