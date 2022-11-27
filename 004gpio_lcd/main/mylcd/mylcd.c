@@ -14,6 +14,7 @@ void mylcd_init()
     // LCD
     i2c_adapter_init();
 
+/*
     mylcd.delay_ms = lcd_delay_ms_fn;
     mylcd.delay_us = lcd_delay_us_fn;
     mylcd.rs_signal_set_level = lcd_rs_signal_set_level_fn;
@@ -24,6 +25,7 @@ void mylcd_init()
     mylcd.font = FONT_5X8;
 
     lcd16x2_init(&mylcd);
+    */
 }
 void mylcd_printCounter(int counter)
 {
