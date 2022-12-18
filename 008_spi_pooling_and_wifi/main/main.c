@@ -7,124 +7,136 @@
 #include "driver/spi_master.h"
 #include "esp_err.h"
 #include "esp_log.h"
+#include "max7219.h"
 
-#define MAX7219_HOST HSPI_HOST
+#include "nvs_flash.h"
+#include "esp_wifi.h"
+#include "esp_mac.h"
+#include "esp_event.h"
+#include "rest_server.h"
 
-#define PIN_NUM_MISO -1
-#define PIN_NUM_MOSI 25
-#define PIN_NUM_CLK 27
-#define PIN_NUM_CS 26
+#include "esp_spiffs.h"
 
-#define MAX7219_REG_DIGIT_0 0x01
-#define MAX7219_REG_DIGIT_1 0x02
-#define MAX7219_REG_DIGIT_2 0x03
-#define MAX7219_REG_DIGIT_3 0x04
-#define MAX7219_REG_DIGIT_4 0x05
-#define MAX7219_REG_DIGIT_5 0x06
-#define MAX7219_REG_DIGIT_6 0x07
-#define MAX7219_REG_DIGIT_7 0x08
-#define MAX7219_REG_DECODE_MODE 0x09
-#define MAX7219_REG_INTENSITY 0x0A
-#define MAX7219_REG_SCAN 0x0B
-#define MAX7219_REG_SHUTDOWN 0x0C
-#define MAX7219_REG_DISPLAY_TEST 0x0F
-/*
-uint8_t bufer_3[8] = {
-    {0, 0, 1, 1, 1, 1, 0, 0},
-    {0, 0, 0, 0, 0, 1, 0, 0},
-    {0, 0, 0, 0, 0, 1, 0, 0},
-    {0, 0, 0, 1, 1, 1, 0, 0},
-    {0, 0, 0, 1, 1, 1, 0, 0},
-    {0, 0, 0, 0, 0, 1, 0, 0},
-    {0, 0, 0, 0, 0, 1, 0, 0},
-    {0, 0, 1, 1, 1, 1, 0, 0}}
-*/
-uint8_t bufer_3[8] = {0x3C, 0x04, 0x04, 0x1C, 0x1C, 0x04, 0x04, 0x3C};
+#define EXAMPLE_ESP_WIFI_SSID "ESP_ACCESS_POINT"
+#define EXAMPLE_ESP_WIFI_PASS "123789abc"
+#define EXAMPLE_ESP_WIFI_CHANNEL 5
+#define EXAMPLE_MAX_STA_CONN 1
 
-esp_err_t max7219_send_data(spi_device_handle_t spi, uint8_t addr, uint8_t data)
+static const char *TAG = "wifi softAP";
+
+static void wifi_event_handler(void *arg, esp_event_base_t event_base,
+                               int32_t event_id, void *event_data)
 {
-    spi_transaction_t t;
-    memset(&t, 0, sizeof(t)); // Zero out the transaction
-    t.addr = addr;
-    t.length = 8;        // Command is 8 bits
-    t.tx_buffer = &data; // The data is the cmd itself
-
-    return spi_device_polling_transmit(spi, &t); // Transmit!
+    if (event_id == WIFI_EVENT_AP_STACONNECTED)
+    {
+        wifi_event_ap_staconnected_t *event = (wifi_event_ap_staconnected_t *)event_data;
+        ESP_LOGI(TAG, "station " MACSTR " join, AID=%d",
+                 MAC2STR(event->mac), event->aid);
+    }
+    else if (event_id == WIFI_EVENT_AP_STADISCONNECTED)
+    {
+        wifi_event_ap_stadisconnected_t *event = (wifi_event_ap_stadisconnected_t *)event_data;
+        ESP_LOGI(TAG, "station " MACSTR " leave, AID=%d",
+                 MAC2STR(event->mac), event->aid);
+    }
 }
 
-// Initialize the display
-void max7219_init(spi_device_handle_t spi)
+void wifi_init_softap(void)
 {
-    esp_err_t err;
+    ESP_ERROR_CHECK(esp_netif_init());
+    ESP_ERROR_CHECK(esp_event_loop_create_default());
+    esp_netif_create_default_wifi_ap();
 
-    err = max7219_send_data(spi, MAX7219_REG_DISPLAY_TEST, 0x01);
-    ESP_LOGI("main", "line %d ||err = %s", __LINE__, esp_err_to_name(err));
+    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+    ESP_ERROR_CHECK(esp_wifi_init(&cfg));
 
-    vTaskDelay(pdMS_TO_TICKS(3000));
+    ESP_ERROR_CHECK(esp_event_handler_instance_register(WIFI_EVENT,
+                                                        ESP_EVENT_ANY_ID,
+                                                        &wifi_event_handler,
+                                                        NULL,
+                                                        NULL));
 
-    err = max7219_send_data(spi, MAX7219_REG_DISPLAY_TEST, 0x00);
-    ESP_LOGI("main", "line %d ||err = %s", __LINE__, esp_err_to_name(err));
+    wifi_config_t wifi_config = {
+        .ap = {
+            .ssid = EXAMPLE_ESP_WIFI_SSID,
+            .ssid_len = strlen(EXAMPLE_ESP_WIFI_SSID),
+            .channel = EXAMPLE_ESP_WIFI_CHANNEL,
+            .password = EXAMPLE_ESP_WIFI_PASS,
+            .max_connection = EXAMPLE_MAX_STA_CONN,
+            .authmode = WIFI_AUTH_WPA_WPA2_PSK,
+            .pmf_cfg = {
+                .required = false,
+            },
+        },
+    };
+    if (strlen(EXAMPLE_ESP_WIFI_PASS) == 0)
+    {
+        wifi_config.ap.authmode = WIFI_AUTH_OPEN;
+    }
 
-    err = max7219_send_data(spi, MAX7219_REG_SHUTDOWN, 0x00);
-    ESP_LOGI("main", "line %d ||err = %s", __LINE__, esp_err_to_name(err));
+    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
+    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &wifi_config));
+    ESP_ERROR_CHECK(esp_wifi_start());
 
-    err = max7219_send_data(spi, MAX7219_REG_SHUTDOWN, 0x01);
-    ESP_LOGI("main", "line %d ||err = %s", __LINE__, esp_err_to_name(err));
+    ESP_LOGI(TAG, "wifi_init_softap finished. SSID:%s password:%s channel:%d",
+             EXAMPLE_ESP_WIFI_SSID, EXAMPLE_ESP_WIFI_PASS, EXAMPLE_ESP_WIFI_CHANNEL);
+}
 
-    err = max7219_send_data(spi, MAX7219_REG_INTENSITY, 0x07);
-    ESP_LOGI("main", "line %d ||err = %s", __LINE__, esp_err_to_name(err));
+esp_err_t init_fs(void)
+{
+    esp_vfs_spiffs_conf_t conf = {
+        .base_path = "/www",
+        .partition_label = NULL,
+        .max_files = 5,
+        .format_if_mount_failed = false};
+    esp_err_t ret = esp_vfs_spiffs_register(&conf);
 
-    err = max7219_send_data(spi, MAX7219_REG_DECODE_MODE, 0x00);
-    ESP_LOGI("main", "line %d ||err = %s", __LINE__, esp_err_to_name(err));
+    if (ret != ESP_OK)
+    {
+        if (ret == ESP_FAIL)
+        {
+            ESP_LOGE(TAG, "Failed to mount or format filesystem");
+        }
+        else if (ret == ESP_ERR_NOT_FOUND)
+        {
+            ESP_LOGE(TAG, "Failed to find SPIFFS partition");
+        }
+        else
+        {
+            ESP_LOGE(TAG, "Failed to initialize SPIFFS (%s)", esp_err_to_name(ret));
+        }
+        return ESP_FAIL;
+    }
 
-    err = max7219_send_data(spi, MAX7219_REG_SCAN, 0x07);
-    ESP_LOGI("main", "line %d ||err = %s", __LINE__, esp_err_to_name(err));
-
-    max7219_send_data(spi, MAX7219_REG_DIGIT_0, 0);
-    max7219_send_data(spi, MAX7219_REG_DIGIT_1, 0);
-    max7219_send_data(spi, MAX7219_REG_DIGIT_2, 0);
-    max7219_send_data(spi, MAX7219_REG_DIGIT_3, 0);
-    max7219_send_data(spi, MAX7219_REG_DIGIT_4, 0);
-    max7219_send_data(spi, MAX7219_REG_DIGIT_5, 0);
-    max7219_send_data(spi, MAX7219_REG_DIGIT_6, 0);
-    max7219_send_data(spi, MAX7219_REG_DIGIT_7, 0);
-
-    max7219_send_data(spi, MAX7219_REG_DIGIT_0, bufer_3[0]);
-    max7219_send_data(spi, MAX7219_REG_DIGIT_1, bufer_3[1]);
-    max7219_send_data(spi, MAX7219_REG_DIGIT_2, bufer_3[2]);
-    max7219_send_data(spi, MAX7219_REG_DIGIT_3, bufer_3[3]);
-    max7219_send_data(spi, MAX7219_REG_DIGIT_4, bufer_3[4]);
-    max7219_send_data(spi, MAX7219_REG_DIGIT_5, bufer_3[5]);
-    max7219_send_data(spi, MAX7219_REG_DIGIT_6, bufer_3[6]);
-    max7219_send_data(spi, MAX7219_REG_DIGIT_7, bufer_3[7]);
+    size_t total = 0, used = 0;
+    ret = esp_spiffs_info(NULL, &total, &used);
+    if (ret != ESP_OK)
+    {
+        ESP_LOGE(TAG, "Failed to get SPIFFS partition information (%s)", esp_err_to_name(ret));
+    }
+    else
+    {
+        ESP_LOGI(TAG, "Partition size: total: %d, used: %d", total, used);
+    }
+    return ESP_OK;
 }
 
 void app_main(void)
 {
-    spi_device_handle_t spi;
-    spi_bus_config_t buscfg = {
-        .miso_io_num = PIN_NUM_MISO,
-        .mosi_io_num = PIN_NUM_MOSI,
-        .sclk_io_num = PIN_NUM_CLK,
-        .quadwp_io_num = -1,
-        .quadhd_io_num = -1};
+    max7219_init();
 
-    spi_device_interface_config_t devcfg = {
-        .command_bits = 0,
-        .address_bits = 8,
-        .dummy_bits = 0,
-        .clock_speed_hz = 1 * 1000 * 1000, // Clock out at 1 MHz
-        .mode = 0,                         // SPI mode 0
-        .spics_io_num = PIN_NUM_CS,        // CS pin
-        .queue_size = 7,                   // We want to be able to queue 7 transactions at a time
-    };
+    // Initialize NVS
+    esp_err_t ret = nvs_flash_init();
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
+    {
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        ret = nvs_flash_init();
+    }
+    ESP_ERROR_CHECK(ret);
 
-    // Initialize the SPI bus
-    spi_bus_initialize(MAX7219_HOST, &buscfg, SPI_DMA_DISABLED); // SPI_DMA_CH_AUTO
+    ESP_LOGI(TAG, "ESP_WIFI_MODE_AP");
+    wifi_init_softap();
 
-    // Attach max7219 to the SPI bus
-    spi_bus_add_device(MAX7219_HOST, &devcfg, &spi);
-
-    // Initialize the device
-    max7219_init(spi);
+    ESP_ERROR_CHECK(init_fs());
+    ESP_ERROR_CHECK(start_rest_server());
 }

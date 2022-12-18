@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <button id="n0" class="favorite styled" type="button">
+        0
+    </button>
+    <button id="n1" class="favorite styled" type="button">
+        1
+    </button>
+    <button id="n2" class="favorite styled" type="button">
+        2
+    </button>
+    <button id="n3" class="favorite styled" type="button">
+        3
+    </button>
+    <button id="n4" class="favorite styled" type="button">
+        4
+    </button>
+    <button id="n5" class="favorite styled" type="button">
+        5
+    </button>
+    <button id="n6" class="favorite styled" type="button">
+        6
+    </button>
+    <button id="n7" class="favorite styled" type="button">
+        7
+    </button>
+    <button id="n8" class="favorite styled" type="button">
+        8
+    </button>
+    <button id="n9" class="favorite styled" type="button">
+        9
+    </button>
+
+</head>
+
+
+<script>
+    document.getElementById("n0").addEventListener("click", function (event) {
+        // presentar la cuenta de clicks realizados sobre el elemento con id "prueba"
+        console.log("boton 0 presionado");
+
+        var url = '/max7219';
+
+        const request = new Request(
+            url,
+            {
+                method: 'POST',
+                body: '{"number":0}'
+            },
+        );
+
+        fetch(request)
+            .then((response) => console.log(response));
+
+    }, false);
+    document.getElementById("n1").addEventListener("click", function (event) {
+        // presentar la cuenta de clicks realizados sobre el elemento con id "prueba"
+        console.log("boton 1 presionado");
+
+        var url = '/max7219';
+
+        const request = new Request(
+            url,
+            {
+                method: 'POST',
+                body: '{"number":1}'
+            },
+        );
+
+        fetch(request)
+            .then((response) => console.log(response));
+
+    }, false);
+    document.getElementById("n2").addEventListener("click", function (event) {
+        // presentar la cuenta de clicks realizados sobre el elemento con id "prueba"
+        console.log("boton 2 presionado");
+
+        var url = '/max7219';
+
+        const request = new Request(
+            url,
+            {
+                method: 'POST',
+                body: '{"number":2}'
+            },
+        );
+
+        fetch(request)
+            .then((response) => console.log(response));
+
+    }, false);
+    document.getElementById("n3").addEventListener("click", function (event) {
+        // presentar la cuenta de clicks realizados sobre el elemento con id "prueba"
+        console.log("boton 3 presionado");
+
+        var url = '/max7219';
+
+        const request = new Request(
+            url,
+            {
+                method: 'POST',
+                body: '{"number":3}'
+            },
+        );
+
+        fetch(request)
+            .then((response) => console.log(response));
+
+    }, false);
+    document.getElementById("n4").addEventListener("click", function (event) {
+        // presentar la cuenta de clicks realizados sobre el elemento con id "prueba"
+        console.log("boton 4 presionado");
+
+        var url = '/max7219';
+
+        const request = new Request(
+            url,
+            {
+                method: 'POST',
+                body: '{"number":4}'
+            },
+        );
+
+        fetch(request)
+            .then((response) => console.log(response));
+
+    }, false);
+    document.getElementById("n5").addEventListener("click", function (event) {
+        // presentar la cuenta de clicks realizados sobre el elemento con id "prueba"
+        console.log("boton 5 presionado");
+
+        var url = '/max7219';
+
+        const request = new Request(
+            url,
+            {
+                method: 'POST',
+                body: '{"number":5}'
+            },
+        );
+
+        fetch(request)
+            .then((response) => console.log(response));
+
+    }, false);
+    document.getElementById("n6").addEventListener("click", function (event) {
+        // presentar la cuenta de clicks realizados sobre el elemento con id "prueba"
+        console.log("boton 6 presionado");
+
+        var url = '/max7219';
+
+        const request = new Request(
+            url,
+            {
+                method: 'POST',
+                body: '{"number":6}'
+            },
+        );
+
+        fetch(request)
+            .then((response) => console.log(response));
+
+    }, false);
+    document.getElementById("n7").addEventListener("click", function (event) {
+        // presentar la cuenta de clicks realizados sobre el elemento con id "prueba"
+        console.log("boton 7 presionado");
+
+        var url = '/max7219';
+
+        const request = new Request(
+            url,
+            {
+                method: 'POST',
+                body: '{"number":7}'
+            },
+        );
+
+        fetch(request)
+            .then((response) => console.log(response));
+
+    }, false);
+    document.getElementById("n8").addEventListener("click", function (event) {
+        // presentar la cuenta de clicks realizados sobre el elemento con id "prueba"
+        console.log("boton 8 presionado");
+
+        var url = '/max7219';
+
+        const request = new Request(
+            url,
+            {
+                method: 'POST',
+                body: '{"number":8}'
+            },
+        );
+
+        fetch(request)
+            .then((response) => console.log(response));
+
+    }, false);
+    document.getElementById("n9").addEventListener("click", function (event) {
+        // presentar la cuenta de clicks realizados sobre el elemento con id "prueba"
+        console.log("boton 9 presionado");
+
+        var url = '/max7219';
+
+        const request = new Request(
+            url,
+            {
+                method: 'POST',
+                body: '{"number":9}'
+            },
+        );
+
+        fetch(request)
+            .then((response) => console.log(response));
+
+    }, false);
+</script>
+
+<body>
+
+</body>
+
+</html>
