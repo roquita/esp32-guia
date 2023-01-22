@@ -19,6 +19,7 @@
 
 static const char *REST_TAG = "esp-rest";
 
+
 #define FILE_PATH_MAX (ESP_VFS_PATH_MAX + 128)
 #define SCRATCH_BUFSIZE (10240)
 
@@ -139,20 +140,6 @@ static esp_err_t max7219_post_handler(httpd_req_t *req)
         return ESP_FAIL;
     }
 
-    /*
-        while (cur_len < total_len)
-        {
-            received = httpd_req_recv(req, buf + cur_len, total_len);
-            if (received <= 0)
-            {
-                // Respond with 500 Internal Server Error
-                httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Failed to post control value");
-                return ESP_FAIL;
-            }
-            cur_len += received;
-        }
-        */
-
     httpd_req_recv(req, buf, SCRATCH_BUFSIZE);
 
     // buf[total_len] = '\0';
@@ -164,6 +151,9 @@ static esp_err_t max7219_post_handler(httpd_req_t *req)
     max7219_print_number(number);
 
     cJSON_Delete(root);
+
+    
+
     httpd_resp_sendstr(req, "Post control value successfully");
     return ESP_OK;
 }

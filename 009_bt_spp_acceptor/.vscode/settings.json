@@ -20,10 +20,6 @@
         "sstream": "c",
         "regex": "c",
         "thread": "c",
-        "http_parser.h": "c",
-        "rest_server.h": "c",
-        "max7219.h": "c",
-        "esp_event.h": "c",
-        "esp_spiffs.h": "c"
+        "http_parser.h": "c"
     }
 }
